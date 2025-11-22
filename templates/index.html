@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Secret Santa</title>
+
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #faf5f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        width: 90%;
+        max-width: 700px;
+        background: white;
+        margin-top: 40px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        text-align: center;
+        color: #b30000;
+    }
+
+    .card {
+        background: #fff6f6;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 10px;
+        border: 1px solid #f0caca;
+    }
+
+    .questioncard {
+        background: #D9FFD9;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 10px;
+        border: 1px solid #f0caca;
+    }
+
+    button {
+        background: #b30000;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #d10000;
+    }
+
+    input[type="text"], select {
+        padding: 6px;
+        border-radius: 6px;
+        border: 1px solid #d8d8d8;
+        margin-top: 5px;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid #eee;
+        margin: 10px 0;
+    }
+
+    .reply {
+        margin-left: 20px;
+        font-size: 0.9em;
+        color: #444;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎅 Secret Santa 🎁</h1>
+
+    <!-- PARTICIPANTS -->
+    {% if names %}
+        <div class="card">
+            <b>Participants:</b>
+            {% for name in names %}
+                <p>{{ name[0] }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- DRAW SECTION -->
+    <div class="card">
+        <p><b>Select who you are</b> so you can't raffle yourself:</p>
+
+        <form action="/draw-secret-santa" method="post">
+            <select name="user">
+                <option value="Maija">Maija</option>
+                <option value="Elina">Elina</option>
+                <option value="Paula">Paula</option>
+                <option value="Pekka">Pekka</option>
+            </select>
+
+            <button type="submit">Draw your Secret Santa!</button>
+        </form>
+
+        {% if santa %}
+            <p><b>Your Secret Santa is:</b> {{ santa }}</p>
+        {% else %}
+            <p><i>No one left to draw.</i></p>
+        {% endif %}
+    </div>
+
+    <!-- FORUM QUESTION -->
+    <div class="card">
+        <form action="/send" method="post">
+          <b>Ask a question:</b><br>
+          <input type="text" name="message" />
+          <button type="submit">Send</button>
+        </form>
+    
+
+        <!-- MESSAGES -->
+        {% for message in messages %}
+            <div class="questioncard">
+
+                <p><b>{{ message[1] }}</b></p>
+
+                {% for reply in message[2] %}
+                    <p class="reply">– {{ reply }}</p>
+                {% endfor %}
+
+                <form action="/reply" method="post">
+                    <input type="hidden" name="message_id" value="{{ message[0] }}">
+                    <input type="text" name="reply" placeholder="Reply…" />
+                    <button type="submit">Reply</button>
+                </form>
+
+            </div>
+        {% endfor %}
+    </div>
+
+    <footer style="text-align:center; margin-top:20px; font-size:0.9em; color:#666;">
+        <a href="https://github.com/OMA-REPO-OSOITE" target="_blank">
+            View this project on GitHub
+        </a>
+    </footer>
+</div>
+</body>
+</html>
