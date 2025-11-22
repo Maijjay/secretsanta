@@ -1,11 +1,17 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect
 import random
+import os
 
 app = Flask(__name__)
 
+# Use a database path that works in containers
+DB_PATH = os.environ.get('DB_PATH', '/app/data/database.db')
+
 def init_db():
-    db = sqlite3.connect("database.db")
+    # Ensure the data directory exists
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    db = sqlite3.connect(DB_PATH)
     db.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, used INTEGER DEFAULT 0)")
     db.execute("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, message TEXT)")
     db.execute ("CREATE TABLE IF NOT EXISTS replies (id INTEGER PRIMARY KEY, message_id INTEGER, reply TEXT, FOREIGN KEY(message_id) REFERENCES messages(id))")
@@ -23,7 +29,7 @@ def init_db():
 
 @app.route("/draw-secret-santa", methods=["POST"])
 def draw_secret_santa():
-    db = sqlite3.connect("database.db")
+    db = sqlite3.connect(DB_PATH)
 
     user = request.form["user"]
 
@@ -51,7 +57,7 @@ def draw_secret_santa():
 @app.route("/send", methods=["POST"])
 def send():
     content = request.form["message"]
-    db = sqlite3.connect("database.db")
+    db = sqlite3.connect(DB_PATH)
     db.execute("INSERT INTO messages (message) VALUES (?)", [content])
     db.commit()
     db.close()
@@ -61,14 +67,14 @@ def send():
 def reply():
     message_id = request.form["message_id"]
     reply = request.form["reply"]
-    db = sqlite3.connect("database.db")
+    db = sqlite3.connect(DB_PATH)
     db.execute("INSERT INTO replies (message_id, reply) VALUES (?, ?)", (message_id, reply))
     db.commit()
     db.close()
     return redirect("/")
 
 def load_index_data():
-    db = sqlite3.connect("database.db")
+    db = sqlite3.connect(DB_PATH)
 
     names = db.execute("SELECT name FROM users").fetchall()
 
@@ -91,4 +97,4 @@ def index():
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
